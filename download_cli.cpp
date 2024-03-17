@@ -1,16 +1,14 @@
 #include <chrono>
-#include <functional>
 #include <iostream>
-#include <mutex>
 #include <ranges>
 #include <range/v3/all.hpp>
-#include <thread>
 #include <tuple>
 
 #include <boost/program_options.hpp>
 #include <fmt/core.h>
 
-
+#include "duco/downloader.hpp"
+#include "utils/threadpool.hpp"
 #include "utils/date_range.hpp"
 
 namespace po = boost::program_options;
@@ -34,7 +32,8 @@ int main(int argc, char* argv[]) {
             return 1;
         }
         po::notify(vm);
-    } catch (const po::required_option& e) {
+    }
+    catch (const po::required_option& e) {
         std::cerr << "ERROR: " << e.what() << std::endl << std::endl;
         std::cerr << desc << std::endl;
         return 1;
@@ -46,6 +45,15 @@ int main(int argc, char* argv[]) {
     std::cout << "Symbol: " << symbol << "\n";
     std::cout << "Start date: " << start << "\n";
     std::cout << "End date: " << end << "\n";
-        
+
+	date_range const period(start, end);
+    auto taskArguments = period 
+        | std::views::transform([&symbol](auto day){
+            return std::tuple{ symbol, year_month_day{floor<days>(day)} };
+        });
+
+    auto threadpool = Threadpool(5);
+    threadpool.runTasks(taskArguments, duco::Downloader::downloadFile);
+
     return 0;
 }
