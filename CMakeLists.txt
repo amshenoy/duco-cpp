@@ -1,7 +1,8 @@
 cmake_minimum_required(VERSION 3.25.0)
+
 set(CMAKE_CXX_STANDARD 23)
-# set(CMAKE_C_COMPILER clang)
-# set(CMAKE_CXX_COMPILER clang)
+# set(CMAKE_C_COMPILER "C:/Program Files/LLVM/bin/clang.exe")
+# set(CMAKE_CXX_COMPILER "C:/Program Files/LLVM/bin/clang++.exe")
 
 set(CMAKE_TOOLCHAIN_FILE "C:/cppdev/vcpkg/scripts/buildsystems/vcpkg.cmake" CACHE STRING "")
 set(VCPKG_HOST_TRIPLET "x64-windows" CACHE STRING "")
