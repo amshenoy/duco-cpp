@@ -20,5 +20,15 @@ cmake -S . -B build
 ```
 
 ```sh
-cmake --build build ; ./build/client.exe
+cmake --build build
 ```
+
+
+# Run
+
+## Download CLI
+
+```sh
+./build/download-cli.exe --symbol GBPUSD --start 2023-11-01 --end 2023-11-21
+```
+
