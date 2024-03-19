@@ -20,9 +20,9 @@
 #include <boost/iostreams/filter/zstd.hpp>
 #include <curl/curl.h>
 
-#include "decompress.hpp"
+#include "../utils/decompress.hpp"
+#include "data.hpp"
 #include "downloader.hpp"
-#include "concepts.hpp"
 
 using namespace std::chrono_literals;
 
@@ -147,17 +147,9 @@ Generator<uint8_t> Downloader::streamBytes(std::string symbol, std::chrono::year
     }
 }
 
-std::string Downloader::getFilepath(std::string symbol, std::chrono::year_month_day ymd)
-{
-    auto const y = static_cast<int>(ymd.year());
-    auto const m = static_cast<unsigned>(ymd.month());
-    auto const d = static_cast<unsigned>(ymd.day());
-    return std::format("./data/{0}/{1}-{2:02d}/{0}_{1}-{2:02d}-{3:02d}.zst", symbol, y, m, d);
-}
-
 void Downloader::downloadFile(std::string symbol, std::chrono::year_month_day ymd)
 {
-    auto const outFile = getFilepath(symbol, ymd);
+    auto const outFile = duco::data::File::getFilepath(symbol, ymd);
     std::cout << "Output File: " << outFile << std::endl;
 
     boost::filesystem::path directory = boost::filesystem::path(outFile).parent_path();
@@ -177,7 +169,7 @@ void Downloader::downloadFile(std::string symbol, std::chrono::year_month_day ym
 // This loads the entire file into memory so not the best approach
 std::vector<uint8_t> Downloader::loadData(std::string symbol, std::chrono::year_month_day ymd)
 {
-    auto const inFile = getFilepath(symbol, ymd);
+    auto const inFile = duco::data::File::getFilepath(symbol, ymd);
     bio::file_source compressedFile(inFile, std::ios_base::binary);
     if (!compressedFile.is_open()) throw std::runtime_error("Error opening compressed file.");
 

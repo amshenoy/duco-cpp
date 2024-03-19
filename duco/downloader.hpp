@@ -6,7 +6,7 @@
 #include <vector>
 
 // #include "__generator.hpp"
-#include "utils.hpp"
+#include "../utils/samples.hpp"
 
 namespace duco
 {
@@ -38,7 +38,6 @@ namespace duco
     class Downloader
     {
     public:
-        static std::string getFilepath(std::string symbol, year_month_day ymd);
         static void downloadFile(std::string symbol, year_month_day ymd);
         static std::vector<uint8_t> loadData(std::string symbol, year_month_day ymd);
 
