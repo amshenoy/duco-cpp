@@ -18,9 +18,6 @@
 
 #include "concepts.hpp"
 
-namespace duco
-{
-
 /*
 std::vector<uint8_t> DecompressStream(std::ifstream& inputFile)
 {
@@ -119,6 +116,5 @@ std::vector<B> DecompressLzmaBytes(std::span<B> inputSpan)
 // template std::vector<uint8_t> DecompressBytes(std::span<uint8_t> input_data);
 
 
-}
 
 // DecompressLzma("test.cpp.lzma", "output.txt");
