@@ -12,7 +12,7 @@ namespace duco::data {
     struct File
     {
     public:
-        static std::string getFilepath(std::string symbol, std::chrono::year_month_day ymd)
+        static constexpr std::string getFilepath(std::string symbol, std::chrono::year_month_day ymd)
         {
             auto const y = static_cast<int>(ymd.year());
             auto const m = static_cast<unsigned>(ymd.month());
@@ -24,7 +24,7 @@ namespace duco::data {
     struct RefData
     {
     public:
-        static const int get(const std::string& str) { return Sym2ID.at(str); }
+        static constexpr int get(std::string const& str) { return Sym2ID.at(str); }
     private:
         static const inline std::map<std::string, int> Sym2ID = {
             {"EURUSD", 1},
@@ -55,7 +55,7 @@ namespace duco::data {
         // }
 
         template <typename Range>
-        TickRow(const Range& range) { initializeFromRange(range); }
+        TickRow(Range const& range) { initializeFromRange(range); }
 
         TickRow(int sym, auto const& range)
         {
@@ -64,7 +64,7 @@ namespace duco::data {
         }
 
         // Overload << for ostream to print TickRow
-        friend std::ostream& operator<<(std::ostream& os, const TickRow& tickRow)
+        friend std::ostream& operator<<(std::ostream& os, TickRow const& tickRow)
         {
             os << "(" 
             << tickRow.symbol << ", "
@@ -77,16 +77,16 @@ namespace duco::data {
         }
 
         // TODO: Equals should check every field
-        bool operator==(const TickRow& other) const { return timestamp == other.timestamp; }
-        bool operator!=(const TickRow& other) const { return timestamp != other.timestamp; }
+        constexpr bool operator==(const TickRow& other) const { return timestamp == other.timestamp; }
+        constexpr bool operator!=(const TickRow& other) const { return timestamp != other.timestamp; }
 
         // Comparison operators based on timestamp
-        bool operator<(const TickRow& other) const { return timestamp < other.timestamp; }
-        bool operator>(const TickRow& other) const { return timestamp > other.timestamp; }
-        bool operator<=(const TickRow& other) const { return timestamp <= other.timestamp; }
-        bool operator>=(const TickRow& other) const { return timestamp >= other.timestamp; }
+        constexpr bool operator<(const TickRow& other) const { return timestamp < other.timestamp; }
+        constexpr bool operator>(const TickRow& other) const { return timestamp > other.timestamp; }
+        constexpr bool operator<=(const TickRow& other) const { return timestamp <= other.timestamp; }
+        constexpr bool operator>=(const TickRow& other) const { return timestamp >= other.timestamp; }
 
-        void initializeFromRange(auto const& range)
+        void constexpr initializeFromRange(auto const& range)
         {
             auto it = std::ranges::begin(range);
             auto end = std::ranges::end(range);
