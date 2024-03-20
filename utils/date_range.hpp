@@ -83,7 +83,43 @@ struct date_range_ymd {
 
 // TODO: Fix this so it works with pipe operator std::views::transform
 // date_range_ymd dateRangeYmd(start, end); 
+// SEE BELOW
+/*
+constexpr auto year_month_day_transformer = [](auto const day) { return year_month_day{floor<days>(day)}; };
 
+template<typename Range>
+struct transform_view {
+    Range range;
+    constexpr transform_view(Range range) : range(range) {}
+
+    constexpr auto begin() const {
+        return std::ranges::begin(range) | std::views::transform(year_month_day_transformer);
+    }
+
+    constexpr auto end() const {
+        return std::ranges::end(range) | std::views::transform(year_month_day_transformer);
+    }
+};
+
+struct date_range_ymd {
+    date_range period;
+    constexpr date_range_ymd() = default;
+
+    constexpr date_range_ymd(sys_days start, sys_days end)
+        : period(start, end) {}
+
+    constexpr date_range_ymd(date_range range)
+        : period(std::move(range)) {}
+
+    constexpr auto begin() const { return transform_view{period}.begin(); }
+    constexpr auto end() const { return transform_view{period}.end(); }
+
+    // Operator() to initialize date_range_ymd
+    constexpr date_range_ymd operator()(sys_days start, sys_days end) const {
+        return date_range_ymd(start, end);
+    }
+};
+*/
 
 // TODO: We do not need this since date_range is view-compatible
 // struct date_range_view
@@ -99,6 +135,47 @@ struct date_range_ymd {
 //     auto operator()(date_range range) const { return date_range_view{range}; }
 // };
 // constexpr make_date_range_view date_range_to_view;
+
+
+
+
+/*
+// ALSO DOESN'T WORK
+
+template<typename Duration>
+struct date_range_ymd_view : public std::ranges::view_interface<date_range_ymd_view<Duration>> {
+    Duration startPoint;
+    Duration endPoint;
+
+    // date_range_ymd_view(Duration start, Duration end) : startPoint(start), endPoint(end) {}
+    constexpr date_range_ymd_view(Duration start, Duration end) : startPoint(start), endPoint(end) {}
+
+    template<typename D>
+    static constexpr auto convert(D const& d) { return year_month_day{floor<days>(d)}; }
+
+    constexpr auto begin() const {
+        return std::views::iota(startPoint, endPoint) | std::views::transform(convert<Duration>);
+    }
+
+    constexpr auto end() const {
+        return std::views::iota(startPoint, endPoint) | std::views::transform(convert<Duration>);
+    }
+};
+
+template<typename Duration>
+constexpr auto date_range_ymd(Duration start, Duration end) {
+    return date_range_ymd_view<Duration>(start, end);
+}
+*/
+
+
+// DOES NOT WORK
+// struct date_range_ymd {
+//     date_range period;
+//     constexpr date_range_ymd(sys_days start, sys_days end) : period(start, end) {}
+//     constexpr auto begin() const { return std::ranges::begin(period) | std::views::transform( std::views::transform([](auto const d){ return year_month_day{floor<days>(d)}; })); }
+//     constexpr auto end() const { return std::ranges::end(period) | std::views::transform( std::views::transform([](auto const d){ return year_month_day{floor<days>(d)}; })); }
+// };
 
 
 
