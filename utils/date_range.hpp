@@ -16,41 +16,40 @@ public:
     using value_type = system_clock::time_point;
     using difference_type = std::ptrdiff_t;
     using reference = value_type;
-    
-    date_iterator() : val_(system_clock::now()) {}
-    date_iterator(value_type val) : val_(val) {}
 
-    reference operator*() const { return val_; }
-    date_iterator& operator++() {
+    constexpr date_iterator() : val_() {}
+    constexpr date_iterator(value_type val) : val_(val) {}
+
+    constexpr reference operator*() const { return val_; }
+    constexpr date_iterator& operator++() {
         val_ += hours(24);
         return *this;
     }
-    date_iterator operator++(int) {
+    constexpr date_iterator operator++(int) {
         date_iterator temp = *this;
         ++(*this);
         return temp;
     }
-    bool operator==(const date_iterator& other) const { return val_ == other.val_; }
-    bool operator!=(const date_iterator& other) const { return !(*this == other); }
+    constexpr bool operator==(const date_iterator& other) const { return val_ == other.val_; }
+    constexpr bool operator!=(const date_iterator& other) const { return !(*this == other); }
 
 private:
     value_type val_;
 };
-
 
 class date_range : public std::ranges::view_interface<date_range>
 {
 public:
     using value_type = system_clock::time_point;
 
-    date_range() = default;
-    date_range(sys_days start, sys_days end) : start_(start), end_(end + days{1}) {}
-    date_range(value_type start, value_type end) : start_(start), end_(end + days{1}) {}
+    constexpr date_range() = default;
+    constexpr date_range(sys_days start, sys_days end) : start_(start), end_(end + days{1}) {}
+    constexpr date_range(value_type start, value_type end) : start_(start), end_(end + days{1}) {}
 
-    const date_iterator begin() const { return date_iterator(start_); }
-    const date_iterator end() const { return date_iterator(end_); }
+    constexpr date_iterator begin() const { return date_iterator(start_); }
+    constexpr date_iterator end() const { return date_iterator(end_); }
 
-    operator std::ranges::subrange<date_iterator>() const { return {begin(), end()}; }
+    constexpr operator std::ranges::subrange<date_iterator>() const { return {begin(), end()}; }
 
 private:
     value_type start_;
