@@ -81,11 +81,13 @@ int main() {
     // METHOD 2: WORKING
     for (auto dayGroupView : dayGroupedViews) {
         auto vec = dayGroupView | std::ranges::to<std::vector>();
-        // std::cout << vec.size() << std::endl; // Should be equivalent to num of symbols
-        // auto daySortedView = SortedMergeOwningView(SortedMergeGenerator(vec)); // WORKING
-        // auto daySortedView = CombinedSortedView(vec); // WORKING
-        // auto daySortedView = vec | CombinedSortedView<std::ranges::range_value_t<decltype(vec)>>{}; // WORKING
+        // // std::cout << vec.size() << std::endl; // Should be equivalent to num of symbols
+        // // auto daySortedView = SortedMergeOwningView(SortedMergeGenerator(vec)); // WORKING
+        // // auto daySortedView = CombinedSortedView(vec); // WORKING
+        // // auto daySortedView = vec | CombinedSortedView<std::ranges::range_value_t<decltype(vec)>>{}; // WORKING
         auto daySortedView = vec | combined_sorted{}; // WORKING
+
+        // auto daySortedView = dayGroupView | std::ranges::to<std::vector>() | combined_sorted{}; // NOT WORKING
         
         // auto daySortedView = SortedMergeOwningGenView(SortedMergeOwningGenerator(vec)); // TESTING
         // for (auto value : daySortedView) std::cout << value << std::endl;

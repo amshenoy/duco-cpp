@@ -39,7 +39,7 @@ cmake --build build
 
 Specify CMake executable and run in Powershell:
 `& "C:\Program Files\CMake\bin\cmake.exe" -S . -B build`
-`& "C:\Program Files\CMake\bin\cmake.ese" --build build`
+`& "C:\Program Files\CMake\bin\cmake.exe" --build build`
 
 
 # Run

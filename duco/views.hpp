@@ -31,9 +31,9 @@ namespace duco::views
             | std::views::transform(r2t(sym));
     }
 
-    auto asset_day_view(std::string symbol, year_month_day date) {
+    auto const asset_day_view(std::string symbol, year_month_day date) {
         auto const filename = duco::data::File::getFilepath(symbol, date);
-        std::cout << filename << std::endl;
+        // std::cout << filename << std::endl;
         auto const sym = duco::data::RefData::get(symbol);
         // This will work because the decompress_range is created at the point of method call
         // return decompress_range_view(filename) | rows_view(sym);
