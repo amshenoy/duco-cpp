@@ -19,45 +19,45 @@ public:
     using pointer = const char*;
     using reference = const char&;
 
-    decompress_iterator() : file(nullptr), end(true) {}
+    constexpr decompress_iterator() : file(nullptr), end(true) {}
 
-    explicit decompress_iterator(bio::filtering_istream& file, bool end = false) : file(&file), end(end) {
+    constexpr explicit decompress_iterator(bio::filtering_istream& file, bool end = false) : file(&file), end(end) {
         if (!end) operator++();
     }
 
     friend class boost::iterator_core_access;
 
-    void increment() {
+    void constexpr increment() {
         if (!file || end) return;
         end = peek_char();
     }
 
-    bool equal(const decompress_iterator& other) const { return end == other.end; }
+    constexpr bool equal(const decompress_iterator& other) const { return end == other.end; }
 
-    reference operator*() const { return value; }
+    constexpr reference operator*() const { return value; }
 
-    decompress_iterator& operator++() {
+    constexpr decompress_iterator& operator++() {
         if (file && !end) {
             end = file->get(value) ? false : true;
         }
         return *this;
     }
 
-    decompress_iterator operator++(int) {
+    constexpr decompress_iterator operator++(int) {
         auto temp = *this;
         ++(*this);
         return temp;
     }
 
-    friend bool operator==(const decompress_iterator& lhs, const decompress_iterator& rhs) { return lhs.end == rhs.end; }
-    friend bool operator!=(const decompress_iterator& lhs, const decompress_iterator& rhs) { return !(lhs == rhs); }
+    constexpr friend bool operator==(const decompress_iterator& lhs, const decompress_iterator& rhs) { return lhs.end == rhs.end; }
+    constexpr friend bool operator!=(const decompress_iterator& lhs, const decompress_iterator& rhs) { return !(lhs == rhs); }
 
 private:
     bio::filtering_istream* file;
     value_type value;
     bool end;
 
-    bool peek_char() const {
+    constexpr bool peek_char() const {
         std::cout << file << std::endl;
         if (file) {
             int c = file->peek();
@@ -75,16 +75,24 @@ public:
     bio::file_source file;
     bio::filtering_istream filter;
 
+    // decompress_range() : file("") {}
+
     explicit decompress_range(std::string const& filename)
     : file(filename, std::ios_base::in | std::ios_base::binary) {
         filter.push(bio::zstd_decompressor());
         filter.push(file);
     }
 
-    decompress_iterator begin() { return decompress_iterator(filter); }
-    decompress_iterator end() { return decompress_iterator(); }
+    // decompress_range(decompress_range&& other) noexcept
+    //     : file(std::move(other.file)) {
+    //         filter.push(bio::zstd_decompressor());
+    //         filter.push(file);
+    //     }
 
-    operator std::ranges::subrange<decompress_iterator>() { return {begin(), end()}; }
+    constexpr decompress_iterator begin() { return decompress_iterator(filter); }
+    constexpr decompress_iterator end() { return decompress_iterator(); }
+
+    constexpr operator std::ranges::subrange<decompress_iterator>() { return {begin(), end()}; }
 };
 
 
@@ -94,11 +102,11 @@ public:
 
     explicit decompress_range_view(std::string const& filename) : range(std::make_unique<decompress_range>(filename)) {}
 
-    auto begin() { return range->begin(); }
-    auto end() { return range->end(); }
+    constexpr auto begin() { return range->begin(); }
+    constexpr auto end() { return range->end(); }
 
     template<typename View>
-    auto operator|(View&& view) { return *range | std::forward<View>(view); }
+    constexpr auto operator|(View&& view) { return *range | std::forward<View>(view); }
 };
 
 
@@ -108,3 +116,18 @@ public:
         : std::ranges::owning_view<decompress_range_view>(decompress_range_view(filename)) {}
 };
 
+
+// class decompress_range_owning_view : public std::ranges::view_base {
+// public:
+//     static constexpr decompress_range range;
+
+//     explicit constexpr decompress_range_owning_view(std::string const& filename) : range(filename) {}
+
+//     constexpr auto begin() { return range.begin(); }
+//     constexpr auto end() { return range.end(); }
+
+//     template<typename View>
+//     constexpr auto operator|(View&& view) {
+//         return std::forward<View>(view)(range);
+//     }
+// };
