@@ -23,38 +23,46 @@ struct SortedMergeGenerator {
     ValueType value;
     std::priority_queue<std::pair<ValueType, size_t>, std::vector<std::pair<ValueType, size_t>>, std::greater<>> minHeap;
 
-    ValueType getValue() const { return value; }
+    constexpr ValueType getValue() const { return value; }
 
-    SortedMergeGenerator() : value(std::numeric_limits<ValueType>::max()) {}
+    constexpr SortedMergeGenerator() : value(std::numeric_limits<ValueType>::max()) {}
 
     template <typename... Views>
     requires (std::ranges::range<Views> && ...)
-    SortedMergeGenerator(Views&... views) {
+    constexpr SortedMergeGenerator(Views&... views) {
         size_t i = 0;
         (emplaceView(views, i++), ...);
         value = std::numeric_limits<ValueType>::max();
     }
 
-    SortedMergeGenerator(std::vector<View>& views) {
+    constexpr SortedMergeGenerator(std::vector<View>& views) {
         size_t i = 0;
         for (View& view : views) emplaceView(view, i++);
         value = std::numeric_limits<ValueType>::max();
     }
 
-    // TODO: Need an rvalue version of emplaceView    
-    SortedMergeGenerator(std::vector<View>&& views) {
+    // TODO: Need an rvalue version of emplaceView
+    constexpr SortedMergeGenerator(std::vector<View>&& views) {
         size_t i = 0;
         for (View& view : views) emplaceView(std::move(view), i++);
         value = std::numeric_limits<ValueType>::max();
     }
     
-    virtual void emplaceView(View& view, size_t index) {
+    virtual constexpr void emplaceView(View& view, size_t index) {
         auto begin = std::make_unique<Iterator>(std::ranges::begin(view));
         auto end = std::make_unique<Sentinel>(std::ranges::end(view));
         iterators.push_back(std::move(begin));
         ends.push_back(std::move(end));
         if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
     }
+    
+    // virtual constexpr void emplaceView(View&& view, size_t index) {
+    //     auto begin = std::make_unique<Iterator>(std::ranges::begin(view));
+    //     auto end = std::make_unique<Sentinel>(std::ranges::end(view));
+    //     iterators.push_back(std::move(begin));
+    //     ends.push_back(std::move(end));
+    //     if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
+    // }
     
     // // New constructor taking rvalue references
     // TODO: UNCOMMENT AFTER FIXING RVALUE EMPLACE_VIEW
@@ -84,7 +92,7 @@ struct SortedMergeGenerator {
     //     if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
     // }
 
-    bool moveNext() {
+    constexpr bool moveNext() {
         if (minHeap.empty()) return false;
         auto [minValue, idx] = minHeap.top();
         minHeap.pop();
@@ -129,49 +137,46 @@ public:
     using pointer = value_type*;
     using reference = value_type;
 
-    SortedMergeIterator() = default;
+    constexpr SortedMergeIterator() : gen_(nullptr){};
 
-    explicit SortedMergeIterator(SortedMergeGenerator<Iterator>& generator)
+    constexpr explicit SortedMergeIterator(SortedMergeGenerator<Iterator>& generator)
         : gen_(&generator) {
         moveNext();
     }
 
-    reference operator*() const { return current_; }
-    pointer operator->() const { return &current_; }
+    constexpr reference operator*() const { return current_; }
+    constexpr pointer operator->() const { return &current_; }
 
-    SortedMergeIterator& operator++() {
+    constexpr SortedMergeIterator& operator++() {
         moveNext();
         return *this;
     }
 
-    SortedMergeIterator operator++(int) {
+    constexpr SortedMergeIterator operator++(int) {
         SortedMergeIterator tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    friend bool operator==(const SortedMergeIterator& lhs, const SortedMergeIterator& rhs) { return lhs.gen_ == rhs.gen_; }
-    friend bool operator!=(const SortedMergeIterator& lhs, const SortedMergeIterator& rhs) { return !(lhs == rhs); }
+    constexpr friend bool operator==(const SortedMergeIterator& lhs, const SortedMergeIterator& rhs) { return lhs.gen_ == rhs.gen_; }
+    constexpr friend bool operator!=(const SortedMergeIterator& lhs, const SortedMergeIterator& rhs) { return !(lhs == rhs); }
 private:
     SortedMergeGenerator<Iterator>* gen_ = nullptr;
     value_type current_;
 
-    void moveNext() {
-        if (gen_ && gen_->moveNext()) {
-            current_ = gen_->getValue();
-        } else {
-            gen_ = nullptr;  // Indicate end of iteration
-        }
+    constexpr void moveNext() {
+        if (gen_ && gen_->moveNext()) { current_ = gen_->getValue(); }
+        else { gen_ = nullptr; }
     }
 };
 
 template <typename Iterator>
 class SortedMergeView : public std::ranges::view_interface<SortedMergeView<Iterator>> {
 public:
-    SortedMergeView() = default;
-    explicit SortedMergeView(SortedMergeGenerator<Iterator>& generator) : gen_(&generator) {}
-    SortedMergeIterator<Iterator> begin() const { return SortedMergeIterator<Iterator>(*gen_); }
-    SortedMergeIterator<Iterator> end() const { return SortedMergeIterator<Iterator>(); }
+    constexpr SortedMergeView() = default;
+    constexpr explicit SortedMergeView(SortedMergeGenerator<Iterator>& generator) : gen_(&generator) {}
+    constexpr SortedMergeIterator<Iterator> begin() const { return SortedMergeIterator<Iterator>(*gen_); }
+    constexpr SortedMergeIterator<Iterator> end() const { return SortedMergeIterator<Iterator>(); }
 private:
     SortedMergeGenerator<Iterator>* gen_ = nullptr;
 };
@@ -181,8 +186,8 @@ private:
 template <typename Iterator>
 class SortedMergeOwningView : public std::ranges::view_interface<SortedMergeOwningView<Iterator>> {
 public:
-    SortedMergeOwningView() = default;
-    explicit SortedMergeOwningView(SortedMergeGenerator<Iterator>&& generator) : gen_(std::make_unique<SortedMergeGenerator<Iterator>>(std::move(generator))) {}
+    constexpr SortedMergeOwningView() = default;
+    constexpr explicit SortedMergeOwningView(SortedMergeGenerator<Iterator>&& generator) : gen_(std::make_unique<SortedMergeGenerator<Iterator>>(std::move(generator))) {}
 
     // TODO: FIX THIS    
     // template <typename... Views>
@@ -193,8 +198,8 @@ public:
     // explicit SortedMergeOwningView(std::vector<std::ranges::views::all_t<decltype(*std::declval<Iterator>())>>& views)
     //     : gen_(std::make_unique<SortedMergeGenerator<Iterator>>(views)) {}
 
-    SortedMergeIterator<Iterator> begin() const { return SortedMergeIterator<Iterator>(*gen_); }
-    SortedMergeIterator<Iterator> end() const { return SortedMergeIterator<Iterator>(); }
+    constexpr SortedMergeIterator<Iterator> begin() const { return SortedMergeIterator<Iterator>(*gen_); }
+    constexpr SortedMergeIterator<Iterator> end() const { return SortedMergeIterator<Iterator>(); }
 private:
     std::unique_ptr<SortedMergeGenerator<Iterator>> gen_;
 };
@@ -233,8 +238,51 @@ int main() {
 
 
 
+template <typename View>
+class CombinedSortedView;
+
+template <typename View>
+class CombinedSortedView : public std::ranges::view_interface<CombinedSortedView<View>> {
+public:
+    using Generator = SortedMergeGenerator<View>;
+    
+    constexpr CombinedSortedView() = default;
+    
+    constexpr explicit CombinedSortedView(std::vector<View>& views) 
+        : gen_(views), begin_(gen_), end_() {}
+
+    constexpr auto begin() const { return begin_; }
+    constexpr auto end() const { return end_; }
+    
+private:
+    Generator gen_;
+    SortedMergeIterator<View> begin_;
+    SortedMergeIterator<View> end_;
+};
+
+template <typename View>
+CombinedSortedView(std::vector<View>&) -> CombinedSortedView<View>;
+
+// template <typename View>
+// auto operator|(std::vector<View> views, CombinedSortedView<View>) {
+//     return CombinedSortedView(views);
+// }
+
+template <typename View>
+auto operator|(std::vector<View>& views, CombinedSortedView<View>) -> CombinedSortedView<View> {
+    return CombinedSortedView<View>(views);
+}
 
 
+
+// Struct for combined_sorted
+struct combined_sorted {};
+
+// Operator | overload for pipe operator
+template <typename View>
+auto operator|(std::vector<View>& views, combined_sorted) -> CombinedSortedView<View> {
+    return CombinedSortedView(views);
+}
 
 
 
