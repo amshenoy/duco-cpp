@@ -28,7 +28,7 @@ struct SortedMergeGenerator {
     constexpr SortedMergeGenerator() : value(std::numeric_limits<ValueType>::max()) {}
 
     template <typename... Views>
-    requires (std::ranges::range<Views> && ...)
+    requires (std::ranges::range<Views>&& ...)
     constexpr SortedMergeGenerator(Views&... views) {
         size_t i = 0;
         (emplaceView(views, i++), ...);
@@ -41,7 +41,6 @@ struct SortedMergeGenerator {
         value = std::numeric_limits<ValueType>::max();
     }
 
-    // TODO: Need an rvalue version of emplaceView
     constexpr SortedMergeGenerator(std::vector<View>&& views) {
         size_t i = 0;
         for (View& view : views) emplaceView(std::move(view), i++);
@@ -55,14 +54,14 @@ struct SortedMergeGenerator {
         ends.push_back(std::move(end));
         if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
     }
-    
-    // virtual constexpr void emplaceView(View&& view, size_t index) {
-    //     auto begin = std::make_unique<Iterator>(std::ranges::begin(view));
-    //     auto end = std::make_unique<Sentinel>(std::ranges::end(view));
-    //     iterators.push_back(std::move(begin));
-    //     ends.push_back(std::move(end));
-    //     if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
-    // }
+
+    virtual constexpr void emplaceView(View&& view, size_t index) {
+        auto begin = std::make_unique<Iterator>(std::ranges::begin(view));
+        auto end = std::make_unique<Sentinel>(std::ranges::end(view));
+        iterators.push_back(std::move(begin));
+        ends.push_back(std::move(end));
+        if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
+    }
     
     // // New constructor taking rvalue references
     // TODO: UNCOMMENT AFTER FIXING RVALUE EMPLACE_VIEW
@@ -82,15 +81,6 @@ struct SortedMergeGenerator {
     //     for(auto& view : range_of_ranges) emplaceView(view, i++);
     //     value = std::numeric_limits<ValueType>::max();
     // }
-    
-    // TODO: FIX THIS SO THAT THE RVALUE CTOR CAN BE USED
-    // virtual void emplaceView(View&& view, size_t index) {
-    //     auto begin = std::make_unique<Iterator>(std::make_move_iterator(std::ranges::begin(view)));
-    //     auto end = std::make_unique<Sentinel>(std::make_move_iterator(std::ranges::end(view)));
-    //     iterators.push_back(std::move(begin));
-    //     ends.push_back(std::move(end));
-    //     if (*iterators.back() != *ends.back()) minHeap.emplace(**iterators.back(), index);
-    // }
 
     constexpr bool moveNext() {
         if (minHeap.empty()) return false;
@@ -107,6 +97,9 @@ SortedMergeGenerator(View...) -> SortedMergeGenerator<View>;
 
 template <typename View>
 SortedMergeGenerator(std::vector<View>) -> SortedMergeGenerator<View>;
+
+template <typename View>
+SortedMergeGenerator(std::vector<View>&&) -> SortedMergeGenerator<View>;
 
 template <typename... Views>
 SortedMergeGenerator(Views&&...) -> SortedMergeGenerator<std::ranges::range_value_t<Views>...>;
@@ -143,6 +136,19 @@ public:
         : gen_(&generator) {
         moveNext();
     }
+
+    // TODO: ADD RVALUE CTOR
+    
+    // constexpr explicit SortedMergeIterator(SortedMergeGenerator<Iterator>&& generator)
+    //     : gen_(&std::move(generator)) {
+    //     moveNext();
+    // }
+
+    // TODO: USE UNIQUE POINTER
+    // constexpr explicit SortedMergeIterator(SortedMergeGenerator<Iterator>&& gen) 
+    //     : gen_(std::make_unique<SortedMergeGenerator<Iterator>>(std::move(gen))) {
+    //         moveNext();    
+    //     }
 
     constexpr reference operator*() const { return current_; }
     constexpr pointer operator->() const { return &current_; }
@@ -251,6 +257,9 @@ public:
     constexpr explicit CombinedSortedView(std::vector<View>& views) 
         : gen_(views), begin_(gen_), end_() {}
 
+    constexpr explicit CombinedSortedView(std::vector<View>&& views) 
+        : gen_(std::move(views)), begin_(gen_), end_() {}
+
     constexpr auto begin() const { return begin_; }
     constexpr auto end() const { return end_; }
     
@@ -263,6 +272,9 @@ private:
 template <typename View>
 CombinedSortedView(std::vector<View>&) -> CombinedSortedView<View>;
 
+template <typename View>
+CombinedSortedView(std::vector<View>&&) -> CombinedSortedView<View>;
+
 // template <typename View>
 // auto operator|(std::vector<View> views, CombinedSortedView<View>) {
 //     return CombinedSortedView(views);
@@ -271,6 +283,12 @@ CombinedSortedView(std::vector<View>&) -> CombinedSortedView<View>;
 template <typename View>
 auto operator|(std::vector<View>& views, CombinedSortedView<View>) -> CombinedSortedView<View> {
     return CombinedSortedView<View>(views);
+}
+
+
+template <typename View>
+auto operator|(std::vector<View>&& views, CombinedSortedView<View>) -> CombinedSortedView<View> {
+    return CombinedSortedView(std::move(views));
 }
 
 
@@ -285,6 +303,10 @@ auto operator|(std::vector<View>& views, combined_sorted) -> CombinedSortedView<
 }
 
 
+template <typename View>
+auto operator|(std::vector<View>&& views, combined_sorted) -> CombinedSortedView<View> {
+    return CombinedSortedView(std::move(views));
+}
 
 
 
